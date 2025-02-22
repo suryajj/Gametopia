@@ -1,38 +1,31 @@
-import Home from "./components/Home"
-import {CLIENT_ID, ACCESS_TOKEN} from "../apiInfo";
+import Home from "./components/Home";
+const CLIENT_ID = process.env.CLIENT_ID || "";
+const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+const getData = async () => {
+  const data = await fetch("https://api.igdb.com/v4/games", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Client-ID": CLIENT_ID,
+      Authorization: "Bearer " + ACCESS_TOKEN,
+    },
+    body: "fields genres.name,platforms.name,name,aggregated_rating,screenshots.image_id,summary,rating,first_release_date,aggregated_rating_count,rating_count,cover.image_id,version_parent,involved_companies.company.name; where rating > 90 & rating_count > 50 & aggregated_rating > 4 & version_parent=null; sort rating desc; limit 15;",
+  });
 
-const getData = async () => {    
-  const data = await fetch(
-    "https://api.igdb.com/v4/games",
-    { method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Client-ID': CLIENT_ID,
-        'Authorization': 'Bearer ' + ACCESS_TOKEN,
-      },
-      body: "fields genres.name,platforms.name,name,aggregated_rating,screenshots.image_id,summary,rating,first_release_date,aggregated_rating_count,rating_count,cover.image_id,version_parent,involved_companies.company.name; where rating > 90 & rating_count > 50 & aggregated_rating > 4 & version_parent=null; sort rating desc; limit 15;"
-  })
-    
+  return data.json();
+};
 
-      
-  return data.json()
+const getSearch = async () => {
+  const data = await fetch("https://api.igdb.com/v4/genres", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Client-ID": CLIENT_ID,
+      Authorization: "Bearer " + ACCESS_TOKEN,
+    },
+    body: "fields name; sort rating desc; limit 500;",
+  });
 
-}
-
-
-const getSearch = async () => {    
-
-  const data = await fetch(
-    "https://api.igdb.com/v4/genres",
-    { method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Client-ID': CLIENT_ID,
-        'Authorization': 'Bearer ' + ACCESS_TOKEN,
-      },
-      body: "fields name; sort rating desc; limit 500;" 
-  })
-    
   // { id: 4, name: 'Fighting' },
   // { id: 5, name: 'Shooter' },
   // { id: 7, name: 'Music' },
@@ -56,36 +49,26 @@ const getSearch = async () => {
   // { id: 35, name: 'Card & Board Game' },
   // { id: 36, name: 'MOBA' },
   // { id: 2, name: 'Point-and-click' }
-      
-  return data.json()
 
-}
-
+  return data.json();
+};
 
 const setUrl = (game: any) => {
-  
-  let source = `https://images.igdb.com/igdb/image/upload/t_1080p/${game.cover.image_id}.png`
-  
-  return {url: source};
-}
+  let source = `https://images.igdb.com/igdb/image/upload/t_1080p/${game.cover.image_id}.png`;
+
+  return { url: source };
+};
 
 export default async function Landing() {
-  const slides = []
+  const slides = [];
   const data = await getData();
   const genre = await getSearch();
   console.log(genre, "genre");
-  
 
-  for(let i = 0; i < data.length; i++){
-    const image = setUrl(data[i])
-    slides.push(image)
+  for (let i = 0; i < data.length; i++) {
+    const image = setUrl(data[i]);
+    slides.push(image);
   }
 
-  
-
-
-
-  return (
-    <Home data={data} slides={slides}/>
-  )
+  return <Home data={data} slides={slides} />;
 }
